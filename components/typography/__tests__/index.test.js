@@ -1,11 +1,16 @@
 import React from 'react';
 import { mount } from 'enzyme';
-import { SmileOutlined, LikeOutlined, HighlightOutlined } from '@ant-design/icons';
+import { render } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { SmileOutlined, LikeOutlined, HighlightOutlined, CheckOutlined } from '@ant-design/icons';
 import KeyCode from 'rc-util/lib/KeyCode';
+import { resetWarned } from 'rc-util/lib/warning';
+import { spyElementPrototype } from 'rc-util/lib/test/domHook';
 import copy from 'copy-to-clipboard';
 import Title from '../Title';
 import Link from '../Link';
 import Paragraph from '../Paragraph';
+import Text from '../Text';
 import Base from '../Base';
 import mountTest from '../../../tests/shared/mountTest';
 import rtlTest from '../../../tests/shared/rtlTest';
@@ -29,15 +34,28 @@ describe('Typography', () => {
   const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
   // Mock offsetHeight
-  const originOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
-    .get;
-  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-    get() {
+  const originOffsetHeight = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    'offsetHeight',
+  ).get;
+
+  const mockGetBoundingClientRect = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect');
+
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
+      get() {
+        let html = this.innerHTML;
+        html = html.replace(/<[^>]*>/g, '');
+        const lines = Math.ceil(html.length / LINE_STR_COUNT);
+        return lines * 16;
+      },
+    });
+    mockGetBoundingClientRect.mockImplementation(function fn() {
       let html = this.innerHTML;
       html = html.replace(/<[^>]*>/g, '');
       const lines = Math.ceil(html.length / LINE_STR_COUNT);
-      return lines * 16;
-    },
+      return { height: lines * 16 };
+    });
   });
 
   // Mock getComputedStyle
@@ -57,6 +75,7 @@ describe('Typography', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
       get: originOffsetHeight,
     });
+    mockGetBoundingClientRect.mockRestore();
     window.getComputedStyle = originGetComputedStyle;
   });
 
@@ -71,169 +90,6 @@ describe('Typography', () => {
   });
 
   describe('Base', () => {
-    describe('trigger ellipsis update', () => {
-      const fullStr =
-        'Bamboo is Little Light Bamboo is Little Light Bamboo is Little Light Bamboo is Little Light Bamboo is Little Light';
-
-      it('should trigger update', async () => {
-        const onEllipsis = jest.fn();
-        const wrapper = mount(
-          <Base ellipsis={{ onEllipsis }} component="p" editable>
-            {fullStr}
-          </Base>,
-        );
-
-        await sleep(20);
-        wrapper.update();
-        expect(wrapper.text()).toEqual('Bamboo is Little ...');
-        expect(onEllipsis).toHaveBeenCalledWith(true);
-        onEllipsis.mockReset();
-
-        wrapper.setProps({ ellipsis: { rows: 2, onEllipsis } });
-        await sleep(20);
-        wrapper.update();
-        expect(wrapper.text()).toEqual('Bamboo is Little Light Bamboo is Litt...');
-        expect(onEllipsis).not.toHaveBeenCalled();
-
-        wrapper.setProps({ ellipsis: { rows: 99, onEllipsis } });
-        await sleep(20);
-        wrapper.update();
-        expect(wrapper.find('p').text()).toEqual(fullStr);
-        expect(onEllipsis).toHaveBeenCalledWith(false);
-
-        wrapper.unmount();
-      });
-
-      it('string with parentheses', async () => {
-        const parenthesesStr = `Ant Design, a design language (for background applications, is refined by
-          Ant UED Team. Ant Design, a design language for background applications,
-          is refined by Ant UED Team. Ant Design, a design language for background
-          applications, is refined by Ant UED Team. Ant Design, a design language
-          for background applications, is refined by Ant UED Team. Ant Design, a
-          design language for background applications, is refined by Ant UED Team.
-          Ant Design, a design language for background applications, is refined by
-          Ant UED Team.`;
-        const onEllipsis = jest.fn();
-        const wrapper = mount(
-          <Base ellipsis={{ onEllipsis }} component="p" editable>
-            {parenthesesStr}
-          </Base>,
-        );
-
-        await sleep(20);
-        wrapper.update();
-        expect(wrapper.text()).toEqual('Ant Design, a des...');
-        const ellipsisSpan = wrapper.find('span[title]');
-        expect(ellipsisSpan.text()).toEqual('...');
-        expect(ellipsisSpan.props().title)
-          .toEqual(`ign language (for background applications, is refined by
-          Ant UED Team. Ant Design, a design language for background applications,
-          is refined by Ant UED Team. Ant Design, a design language for background
-          applications, is refined by Ant UED Team. Ant Design, a design language
-          for background applications, is refined by Ant UED Team. Ant Design, a
-          design language for background applications, is refined by Ant UED Team.
-          Ant Design, a design language for background applications, is refined by
-          Ant UED Team.`);
-        onEllipsis.mockReset();
-
-        wrapper.unmount();
-      });
-
-      it('should middle ellipsis', async () => {
-        const suffix = '--suffix';
-        const wrapper = mount(
-          <Base ellipsis={{ rows: 1, suffix }} component="p">
-            {fullStr}
-          </Base>,
-        );
-
-        await sleep(20);
-        wrapper.update();
-        expect(wrapper.find('p').text()).toEqual('Bamboo is...--suffix');
-        wrapper.unmount();
-      });
-
-      it('should front or middle ellipsis', async () => {
-        const suffix = '--The information is very important';
-        const wrapper = mount(
-          <Base ellipsis={{ rows: 1, suffix }} component="p">
-            {fullStr}
-          </Base>,
-        );
-
-        await sleep(20);
-        wrapper.update();
-        expect(wrapper.find('p').text()).toEqual('...--The information is very important');
-
-        wrapper.setProps({ ellipsis: { rows: 2, suffix } });
-        await sleep(20);
-        wrapper.update();
-        expect(wrapper.find('p').text()).toEqual('Ba...--The information is very important');
-
-        wrapper.setProps({ ellipsis: { rows: 99, suffix } });
-        await sleep(20);
-        wrapper.update();
-        expect(wrapper.find('p').text()).toEqual(fullStr + suffix);
-
-        wrapper.unmount();
-      });
-
-      it('connect children', async () => {
-        const bamboo = 'Bamboo';
-        const is = ' is ';
-
-        const wrapper = mount(
-          <Base ellipsis component="p" editable>
-            {bamboo}
-            {is}
-            <code>Little</code>
-            <code>Light</code>
-          </Base>,
-        );
-
-        await sleep(20);
-        wrapper.update();
-
-        expect(wrapper.text()).toEqual('Bamboo is Little...');
-      });
-
-      it('should expandable work', async () => {
-        const onExpand = jest.fn();
-        const wrapper = mount(
-          <Base ellipsis={{ expandable: true, onExpand }} component="p" copyable editable>
-            {fullStr}
-          </Base>,
-        );
-
-        await sleep(20);
-        wrapper.update();
-
-        wrapper.find('.ant-typography-expand').simulate('click');
-        expect(onExpand).toHaveBeenCalled();
-        await sleep(20);
-        wrapper.update();
-
-        expect(wrapper.find('p').text()).toEqual(fullStr);
-      });
-
-      it('should have custom expand style', async () => {
-        const symbol = 'more';
-        const wrapper = mount(
-          <Base ellipsis={{ expandable: true, symbol }} component="p">
-            {fullStr}
-          </Base>,
-        );
-        await sleep(20);
-        wrapper.update();
-        expect(wrapper.find('.ant-typography-expand').text()).toEqual('more');
-      });
-
-      it('can use css ellipsis', () => {
-        const wrapper = mount(<Base ellipsis component="p" />);
-        expect(wrapper.find('.ant-typography-ellipsis-single-line').length).toBeTruthy();
-      });
-    });
-
     describe('copyable', () => {
       function copyTest(name, text, target, icon, tooltips) {
         it(name, async () => {
@@ -306,6 +162,7 @@ describe('Typography', () => {
           }
 
           jest.useFakeTimers();
+          wrapper.find('.ant-typography-copy').first().simulate('click');
           jest.runAllTimers();
           wrapper.update();
 
@@ -344,7 +201,11 @@ describe('Typography', () => {
     });
 
     describe('editable', () => {
-      function testStep({ name = '', icon, tooltip } = {}, submitFunc, expectFunc) {
+      function testStep(
+        { name = '', icon, tooltip, triggerType, enterIcon },
+        submitFunc,
+        expectFunc,
+      ) {
         it(name, () => {
           jest.useFakeTimers();
           const onStart = jest.fn();
@@ -355,7 +216,7 @@ describe('Typography', () => {
 
           const wrapper = mount(
             <Paragraph
-              editable={{ onChange, onStart, icon, tooltip }}
+              editable={{ onChange, onStart, icon, tooltip, triggerType, enterIcon }}
               className={className}
               style={style}
             >
@@ -363,27 +224,47 @@ describe('Typography', () => {
             </Paragraph>,
           );
 
-          if (icon) {
-            expect(wrapper.find('.anticon-highlight').length).toBeTruthy();
-          } else {
-            expect(wrapper.find('.anticon-edit').length).toBeTruthy();
+          if (triggerType === undefined || triggerType.indexOf('icon') !== -1) {
+            if (icon) {
+              expect(wrapper.find('.anticon-highlight').length).toBeTruthy();
+            } else {
+              expect(wrapper.find('.anticon-edit').length).toBeTruthy();
+            }
+
+            if (triggerType === undefined || triggerType.indexOf('text') === -1) {
+              wrapper.simulate('click');
+              expect(onStart).not.toHaveBeenCalled();
+            }
+            wrapper.find('.ant-typography-edit').first().simulate('mouseenter');
+            jest.runAllTimers();
+            wrapper.update();
+
+            if (tooltip === undefined || tooltip === true) {
+              expect(wrapper.find('.ant-tooltip-inner').text()).toBe('Edit');
+            } else if (tooltip === false) {
+              expect(wrapper.find('.ant-tooltip-inner').length).toBeFalsy();
+            } else {
+              expect(wrapper.find('.ant-tooltip-inner').text()).toBe(tooltip);
+            }
+
+            wrapper.find('.ant-typography-edit').first().simulate('click');
+
+            expect(onStart).toHaveBeenCalled();
+            if (triggerType !== undefined && triggerType.indexOf('text') !== -1) {
+              wrapper.find('textarea').simulate('keyDown', { keyCode: KeyCode.ESC });
+              wrapper.find('textarea').simulate('keyUp', { keyCode: KeyCode.ESC });
+              expect(onChange).not.toHaveBeenCalled();
+            }
           }
 
-          wrapper.find('.ant-typography-edit').first().simulate('mouseenter');
-          jest.runAllTimers();
-          wrapper.update();
-
-          if (tooltip === undefined || tooltip === true) {
-            expect(wrapper.find('.ant-tooltip-inner').text()).toBe('Edit');
-          } else if (tooltip === false) {
-            expect(wrapper.find('.ant-tooltip-inner').length).toBeFalsy();
-          } else {
-            expect(wrapper.find('.ant-tooltip-inner').text()).toBe(tooltip);
+          if (triggerType !== undefined && triggerType.indexOf('text') !== -1) {
+            if (triggerType.indexOf('icon') === -1) {
+              expect(wrapper.find('.anticon-highlight').length).toBeFalsy();
+              expect(wrapper.find('.anticon-edit').length).toBeFalsy();
+            }
+            wrapper.simulate('click');
+            expect(onStart).toHaveBeenCalled();
           }
-
-          wrapper.find('.ant-typography-edit').first().simulate('click');
-
-          expect(onStart).toHaveBeenCalled();
 
           // Should have className
           const props = wrapper.find('div').first().props();
@@ -393,6 +274,18 @@ describe('Typography', () => {
           wrapper.find('textarea').simulate('change', {
             target: { value: 'Bamboo' },
           });
+
+          if (enterIcon === undefined) {
+            expect(
+              wrapper.find('span.ant-typography-edit-content-confirm').first().props().className,
+            ).toContain('anticon-enter');
+          } else if (enterIcon === null) {
+            expect(wrapper.find('span.ant-typography-edit-content-confirm').length).toBe(0);
+          } else {
+            expect(
+              wrapper.find('span.ant-typography-edit-content-confirm').first().props().className,
+            ).not.toContain('anticon-enter');
+          }
 
           if (submitFunc) {
             submitFunc(wrapper);
@@ -441,6 +334,51 @@ describe('Typography', () => {
       testStep({ name: 'customize edit show tooltip', tooltip: true });
       testStep({ name: 'customize edit hide tooltip', tooltip: false });
       testStep({ name: 'customize edit tooltip text', tooltip: 'click to edit text' });
+      testStep({ name: 'enter icon - default', enterIcon: undefined });
+      testStep({ name: 'enter icon - null', enterIcon: null });
+      testStep({ name: 'enter icon - custom', enterIcon: <CheckOutlined /> });
+
+      testStep({ name: 'trigger by icon', triggerType: ['icon'] });
+      testStep({ name: 'trigger by text', triggerType: ['text'] });
+      testStep({ name: 'trigger by both icon and text', triggerType: ['icon', 'text'] });
+
+      it('should trigger onEnd when type Enter', () => {
+        const onEnd = jest.fn();
+        const wrapper = mount(<Paragraph editable={{ onEnd }}>Bamboo</Paragraph>);
+        wrapper.find('.ant-typography-edit').first().simulate('click');
+        wrapper.find('textarea').simulate('keyDown', { keyCode: KeyCode.ENTER });
+        wrapper.find('textarea').simulate('keyUp', { keyCode: KeyCode.ENTER });
+        expect(onEnd).toHaveBeenCalledTimes(1);
+      });
+
+      it('should trigger onCancel when type ESC', () => {
+        const onCancel = jest.fn();
+        const wrapper = mount(<Paragraph editable={{ onCancel }}>Bamboo</Paragraph>);
+        wrapper.find('.ant-typography-edit').first().simulate('click');
+        wrapper.find('textarea').simulate('keyDown', { keyCode: KeyCode.ESC });
+        wrapper.find('textarea').simulate('keyUp', { keyCode: KeyCode.ESC });
+        expect(onCancel).toHaveBeenCalledTimes(1);
+      });
+
+      it('should only trigger focus on the first time', () => {
+        let triggerTimes = 0;
+        const mockFocus = spyElementPrototype(HTMLElement, 'focus', () => {
+          triggerTimes += 1;
+        });
+
+        const wrapper = mount(<Paragraph editable>Bamboo</Paragraph>);
+
+        wrapper.find('.ant-typography-edit').first().simulate('click');
+        expect(triggerTimes).toEqual(1);
+
+        wrapper.find('textarea').simulate('change', {
+          target: { value: 'good' },
+        });
+
+        expect(triggerTimes).toEqual(1);
+
+        mockFocus.mockRestore();
+      });
     });
 
     it('should focus at the end of textarea', () => {
@@ -453,11 +391,38 @@ describe('Typography', () => {
   });
 
   it('warning if use setContentRef', () => {
-    function refFunc() {}
+    const refFunc = () => {};
     mount(<Typography setContentRef={refFunc} />);
-
     expect(errorSpy).toHaveBeenCalledWith(
       'Warning: [antd: Typography] `setContentRef` is deprecated. Please use `ref` instead.',
     );
+  });
+
+  it('no italic warning', () => {
+    resetWarned();
+    render(<Text italic>Little</Text>);
+
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  it('should get HTMLHeadingElement ref from Title', () => {
+    const ref = React.createRef();
+
+    mount(<Title level={1} ref={ref} />);
+    expect(ref.current instanceof HTMLHeadingElement).toBe(true);
+  });
+
+  it('should get HTMLDivElement ref from Paragraph', () => {
+    const ref = React.createRef();
+
+    mount(<Paragraph ref={ref} />);
+    expect(ref.current instanceof HTMLDivElement).toBe(true);
+  });
+
+  it('should get HTMLSpanElement ref from Text', () => {
+    const ref = React.createRef();
+
+    mount(<Text ref={ref} />);
+    expect(ref.current instanceof HTMLSpanElement).toBe(true);
   });
 });

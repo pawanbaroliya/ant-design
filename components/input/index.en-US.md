@@ -20,14 +20,16 @@ A basic widget for getting the user input is a text field. Keyboard and mouse ca
 | --- | --- | --- | --- | --- |
 | addonAfter | The label text displayed after (on the right side of) the input field | ReactNode | - |  |
 | addonBefore | The label text displayed before (on the left side of) the input field | ReactNode | - |  |
-| allowClear | If allow to remove input content with clear icon | boolean | false |  |
+| allowClear | If allow to remove input content with clear icon | boolean \| { clearIcon: ReactNode } | false |  |
 | bordered | Whether has border style | boolean | true | 4.5.0 |
 | defaultValue | The initial input content | string | - |  |
 | disabled | Whether the input is disabled | boolean | false |  |
 | id | The ID for input | string | - |  |
 | maxLength | The max length | number | - |  |
+| showCount | Whether show text count | boolean \| { formatter: ({ count: number, maxLength?: number }) => ReactNode } | false | 4.18.0 |
+| status | Set validation status | 'error' \| 'warning' | - | 4.19.0 |
 | prefix | The prefix icon for the Input | ReactNode | - |  |
-| size | The size of the input box. Note: in the context of a form, the `large` size is used | `large` \| `middle` \| `small` | - |  |
+| size | The size of the input box. Note: in the context of a form, the `middle` size is used | `large` \| `middle` \| `small` | - |  |
 | suffix | The suffix icon for the Input | ReactNode | - |  |
 | type | The type of input, see: [MDN](https://developer.mozilla.org/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types)( use `Input.TextArea` instead of `type="textarea"`) | string | `text` |  |
 | value | The input content value | string | - |  |
@@ -36,7 +38,7 @@ A basic widget for getting the user input is a text field. Keyboard and mouse ca
 
 > When `Input` is used in a `Form.Item` context, if the `Form.Item` has the `id` and `options` props defined then `value`, `defaultValue`, and `id` props of `Input` are automatically set.
 
-The rest of the props of Input are exactly the same as the original [input](https://facebook.github.io/react/docs/events.html#supported-events).
+The rest of the props of Input are exactly the same as the original [input](https://reactjs.org/docs/dom-elements.html#all-supported-html-attributes).
 
 ### Input.TextArea
 
@@ -47,7 +49,7 @@ The rest of the props of Input are exactly the same as the original [input](http
 | bordered | Whether has border style | boolean | true | 4.5.0 |
 | defaultValue | The initial input content | string | - |  |
 | maxLength | The max length | number | - | 4.7.0 |
-| showCount | Whether show text count | boolean | false | 4.7.0 |
+| showCount | Whether show text count | boolean \| { formatter: ({ count: number, maxLength?: number }) => string } | false | 4.7.0 (formatter: 4.10.0) |
 | value | The input content value | string | - |  |
 | onPressEnter | The callback function that is triggered when Enter key is pressed | function(e) | - |  |
 | onResize | The callback function that is triggered when resize | function({ width, height }) | - |  |
@@ -85,6 +87,13 @@ Supports all props of `Input`.
 | iconRender | Custom toggle button | (visible) => ReactNode | (visible) => (visible ? &lt;EyeOutlined /> : &lt;EyeInvisibleOutlined />) | 4.3.0 |
 | visibilityToggle | Whether show toggle button | boolean | true |  |
 
+#### Input Methods
+
+| Name | Description | Parameters | Version |
+| --- | --- | --- | --- |
+| blur | Remove focus | - |  |
+| focus | Get focus | (option?: { preventScroll?: boolean, cursor?: 'start' \| 'end' \| 'all' }) | option - 4.10.0 |
+
 ## FAQ
 
 ### Why Input lose focus when change `prefix/suffix`
@@ -96,3 +105,7 @@ const suffix = condition ? <Icon type="smile" /> : <span />;
 
 <Input suffix={suffix} />;
 ```
+
+### Why TextArea in control can make `value` exceed `maxLength`?
+
+When in control, component should show as what it set to avoid submit value not align with store value in Form.

@@ -1,7 +1,14 @@
 const React = require('react');
+const { _rs: onLibResize } = require('rc-resize-observer/lib/utils/observerUtil');
+const { _rs: onEsResize } = require('rc-resize-observer/es/utils/observerUtil');
 
 // eslint-disable-next-line no-console
 console.log('Current React Version:', React.version);
+
+// jest.mock('react', () => ({
+//   ...jest.requireActual('react'),
+//   useLayoutEffect: jest.requireActual('react').useEffect,
+// }));
 
 /* eslint-disable global-require */
 if (typeof window !== 'undefined') {
@@ -31,16 +38,25 @@ if (typeof window !== 'undefined') {
 
 const Enzyme = require('enzyme');
 
-const Adapter = require('enzyme-adapter-react-16');
+const Adapter =
+  process.env.REACT === '16'
+    ? require('enzyme-adapter-react-16') // eslint-disable-line import/no-extraneous-dependencies,import/no-unresolved
+    : require('@wojtekmaj/enzyme-adapter-react-17');
 
 Enzyme.configure({ adapter: new Adapter() });
 
 Object.assign(Enzyme.ReactWrapper.prototype, {
-  findObserver() {
-    return this.find('ResizeObserver');
+  findObserver(index = 0) {
+    return this.find('ResizeObserver').at(index);
   },
-  triggerResize() {
-    const ob = this.findObserver();
-    ob.instance().onResize([{ target: ob.getDOMNode() }]);
+  triggerResize(index = 0) {
+    const target = this.findObserver(index).getDOMNode();
+    const originGetBoundingClientRect = target.getBoundingClientRect;
+
+    target.getBoundingClientRect = () => ({ width: 510, height: 903 });
+    onLibResize([{ target }]);
+    onEsResize([{ target }]);
+
+    target.getBoundingClientRect = originGetBoundingClientRect;
   },
 });

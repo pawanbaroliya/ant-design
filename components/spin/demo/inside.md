@@ -16,22 +16,21 @@ Spin in a container.
 ```jsx
 import { Spin } from 'antd';
 
-ReactDOM.render(
+export default () => (
   <div className="example">
     <Spin />
-  </div>,
-  mountNode,
+  </div>
 );
 ```
 
 ```css
 .example {
+  margin: 20px 0;
+  margin-bottom: 20px;
+  padding: 30px 50px;
   text-align: center;
   background: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
-  margin-bottom: 20px;
-  padding: 30px 50px;
-  margin: 20px 0;
 }
 ```
 

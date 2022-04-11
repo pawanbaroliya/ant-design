@@ -52,7 +52,7 @@ const Home = (props: { location: any }) => {
       zhCN: '文章',
       enUS: 'Articles',
     });
-    const { pathname, query } = path;
+    const { pathname, query = {} } = path;
     const pathnames = pathname.split('#');
     if ('direction' in query) {
       return `${pathnames[0]}?direction=rtl#${pathnames[1]}`;
@@ -73,18 +73,16 @@ const Home = (props: { location: any }) => {
           <DesignPage location={location} />
         </BlockContent>
 
-        {isZhCN ? (
-          <BlockContent
-            title={<FormattedMessage id="app.home.more" />}
-            extra={
-              <Link to={getLink()} target="_blank">
-                <FormattedMessage id="app.home.view-more" />
-              </Link>
-            }
-          >
-            <MorePage />
-          </BlockContent>
-        ) : null}
+        <BlockContent
+          title={<FormattedMessage id="app.home.more" />}
+          extra={
+            <Link to={getLink()} target="_blank">
+              <FormattedMessage id="app.home.view-more" />
+            </Link>
+          }
+        >
+          <MorePage />
+        </BlockContent>
       </div>
       <Footer location={location} />
     </div>

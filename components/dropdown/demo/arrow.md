@@ -19,30 +19,30 @@ import { Menu, Dropdown, Button } from 'antd';
 const menu = (
   <Menu>
     <Menu.Item>
-      <a target="_blank" rel="noopener noreferrer" href="http://www.alipay.com/">
+      <a target="_blank" rel="noopener noreferrer" href="https://www.antgroup.com">
         1st menu item
       </a>
     </Menu.Item>
     <Menu.Item>
-      <a target="_blank" rel="noopener noreferrer" href="http://www.taobao.com/">
+      <a target="_blank" rel="noopener noreferrer" href="https://www.aliyun.com">
         2nd menu item
       </a>
     </Menu.Item>
     <Menu.Item>
-      <a target="_blank" rel="noopener noreferrer" href="http://www.tmall.com/">
+      <a target="_blank" rel="noopener noreferrer" href="https://www.luohanacademy.com">
         3rd menu item
       </a>
     </Menu.Item>
   </Menu>
 );
 
-ReactDOM.render(
+export default () => (
   <>
     <Dropdown overlay={menu} placement="bottomLeft" arrow>
       <Button>bottomLeft</Button>
     </Dropdown>
-    <Dropdown overlay={menu} placement="bottomCenter" arrow>
-      <Button>bottomCenter</Button>
+    <Dropdown overlay={menu} placement="bottom" arrow>
+      <Button>bottom</Button>
     </Dropdown>
     <Dropdown overlay={menu} placement="bottomRight" arrow>
       <Button>bottomRight</Button>
@@ -51,14 +51,13 @@ ReactDOM.render(
     <Dropdown overlay={menu} placement="topLeft" arrow>
       <Button>topLeft</Button>
     </Dropdown>
-    <Dropdown overlay={menu} placement="topCenter" arrow>
-      <Button>topCenter</Button>
+    <Dropdown overlay={menu} placement="top" arrow>
+      <Button>top</Button>
     </Dropdown>
     <Dropdown overlay={menu} placement="topRight" arrow>
       <Button>topRight</Button>
     </Dropdown>
-  </>,
-  mountNode,
+  </>
 );
 ```
 

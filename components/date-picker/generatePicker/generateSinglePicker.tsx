@@ -7,7 +7,7 @@ import RCPicker from 'rc-picker';
 import { PickerMode } from 'rc-picker/lib/interface';
 import { GenerateConfig } from 'rc-picker/lib/generate/index';
 import enUS from '../locale/en_US';
-import { getPlaceholder } from '../util';
+import { getPlaceholder, transPlacement2DropdownAlign } from '../util';
 import devWarning from '../../_util/devWarning';
 import { ConfigContext, ConfigConsumerProps } from '../../config-provider';
 import LocaleReceiver from '../../locale-provider/LocaleReceiver';
@@ -20,9 +20,19 @@ import {
   getTimeProps,
   Components,
 } from '.';
+import { PickerComponentClass } from './interface';
+import { FormItemStatusContext } from '../../form/context';
+import {
+  getFeedbackIcon,
+  getMergedStatus,
+  getStatusClassNames,
+  InputStatus,
+} from '../../_util/statusUtils';
 
 export default function generatePicker<DateType>(generateConfig: GenerateConfig<DateType>) {
-  type DatePickerProps = PickerProps<DateType>;
+  type DatePickerProps = PickerProps<DateType> & {
+    status?: InputStatus;
+  };
 
   function getPicker<InnerPickerProps extends DatePickerProps>(
     picker?: PickerMode,
@@ -58,20 +68,25 @@ export default function generatePicker<DateType>(generateConfig: GenerateConfig<
         }
       };
 
-      getDefaultLocale = () => {
-        const { locale } = this.props;
-        const result = {
-          ...enUS,
-          ...locale,
-        };
-        result.lang = {
-          ...result.lang,
-          ...((locale || {}) as PickerLocale).lang,
-        };
-        return result;
-      };
+      renderFeedback = (prefixCls: string) => (
+        <FormItemStatusContext.Consumer>
+          {({ hasFeedback, status: contextStatus }) => {
+            const { status: customStatus } = this.props;
+            const status = getMergedStatus(contextStatus, customStatus);
+            return hasFeedback && getFeedbackIcon(prefixCls, status);
+          }}
+        </FormItemStatusContext.Consumer>
+      );
 
-      renderPicker = (locale: PickerLocale) => {
+      renderSuffix = (prefixCls: string, mergedPicker?: PickerMode) => (
+        <>
+          {mergedPicker === 'time' ? <ClockCircleOutlined /> : <CalendarOutlined />}
+          {this.renderFeedback(prefixCls)}
+        </>
+      );
+
+      renderPicker = (contextLocale: PickerLocale) => {
+        const locale = { ...contextLocale, ...this.props.locale };
         const { getPrefixCls, direction, getPopupContainer } = this.context;
         const {
           prefixCls: customizePrefixCls,
@@ -79,7 +94,9 @@ export default function generatePicker<DateType>(generateConfig: GenerateConfig<
           className,
           size: customizeSize,
           bordered = true,
+          placement,
           placeholder,
+          status: customStatus,
           ...restProps
         } = this.props;
         const { format, showTime } = this.props as any;
@@ -102,6 +119,7 @@ export default function generatePicker<DateType>(generateConfig: GenerateConfig<
             ? getTimeProps({ format, ...this.props, picker: mergedPicker })
             : {}),
         };
+        const rootPrefixCls = getPrefixCls();
 
         return (
           <SizeContext.Consumer>
@@ -109,36 +127,44 @@ export default function generatePicker<DateType>(generateConfig: GenerateConfig<
               const mergedSize = customizeSize || size;
 
               return (
-                <RCPicker<DateType>
-                  ref={this.pickerRef}
-                  placeholder={getPlaceholder(mergedPicker, locale, placeholder)}
-                  suffixIcon={
-                    mergedPicker === 'time' ? <ClockCircleOutlined /> : <CalendarOutlined />
-                  }
-                  clearIcon={<CloseCircleFilled />}
-                  allowClear
-                  transitionName="slide-up"
-                  {...additionalProps}
-                  {...restProps}
-                  {...additionalOverrideProps}
-                  locale={locale!.lang}
-                  className={classNames(
-                    {
-                      [`${prefixCls}-${mergedSize}`]: mergedSize,
-                      [`${prefixCls}-borderless`]: !bordered,
-                    },
-                    className,
+                <FormItemStatusContext.Consumer>
+                  {({ hasFeedback, status: contextStatus }) => (
+                    <RCPicker<DateType>
+                      ref={this.pickerRef}
+                      placeholder={getPlaceholder(mergedPicker, locale, placeholder)}
+                      suffixIcon={this.renderSuffix(prefixCls, mergedPicker)}
+                      dropdownAlign={transPlacement2DropdownAlign(direction, placement)}
+                      clearIcon={<CloseCircleFilled />}
+                      prevIcon={<span className={`${prefixCls}-prev-icon`} />}
+                      nextIcon={<span className={`${prefixCls}-next-icon`} />}
+                      superPrevIcon={<span className={`${prefixCls}-super-prev-icon`} />}
+                      superNextIcon={<span className={`${prefixCls}-super-next-icon`} />}
+                      allowClear
+                      transitionName={`${rootPrefixCls}-slide-up`}
+                      {...additionalProps}
+                      {...restProps}
+                      {...additionalOverrideProps}
+                      locale={locale!.lang}
+                      className={classNames(
+                        {
+                          [`${prefixCls}-${mergedSize}`]: mergedSize,
+                          [`${prefixCls}-borderless`]: !bordered,
+                        },
+                        getStatusClassNames(
+                          prefixCls,
+                          getMergedStatus(contextStatus, customStatus),
+                          hasFeedback,
+                        ),
+                        className,
+                      )}
+                      prefixCls={prefixCls}
+                      getPopupContainer={customizeGetPopupContainer || getPopupContainer}
+                      generateConfig={generateConfig}
+                      components={Components}
+                      direction={direction}
+                    />
                   )}
-                  prefixCls={prefixCls}
-                  getPopupContainer={customizeGetPopupContainer || getPopupContainer}
-                  generateConfig={generateConfig}
-                  prevIcon={<span className={`${prefixCls}-prev-icon`} />}
-                  nextIcon={<span className={`${prefixCls}-next-icon`} />}
-                  superPrevIcon={<span className={`${prefixCls}-super-prev-icon`} />}
-                  superNextIcon={<span className={`${prefixCls}-super-next-icon`} />}
-                  components={Components}
-                  direction={direction}
-                />
+                </FormItemStatusContext.Consumer>
               );
             }}
           </SizeContext.Consumer>
@@ -147,7 +173,7 @@ export default function generatePicker<DateType>(generateConfig: GenerateConfig<
 
       render() {
         return (
-          <LocaleReceiver componentName="DatePicker" defaultLocale={this.getDefaultLocale}>
+          <LocaleReceiver componentName="DatePicker" defaultLocale={enUS}>
             {this.renderPicker}
           </LocaleReceiver>
         );
@@ -158,7 +184,7 @@ export default function generatePicker<DateType>(generateConfig: GenerateConfig<
       Picker.displayName = displayName;
     }
 
-    return Picker as React.ComponentClass<InnerPickerProps>;
+    return Picker as PickerComponentClass<InnerPickerProps>;
   }
 
   const DatePicker = getPicker<DatePickerProps>();

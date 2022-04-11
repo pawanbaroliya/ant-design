@@ -17,11 +17,9 @@ Basic Usage, set data source of autocomplete with `options` property.
 import React, { useState } from 'react';
 import { AutoComplete } from 'antd';
 
-const mockVal = (str: string, repeat: number = 1) => {
-  return {
-    value: str.repeat(repeat),
-  };
-};
+const mockVal = (str: string, repeat: number = 1) => ({
+  value: str.repeat(repeat),
+});
 const Complete: React.FC = () => {
   const [value, setValue] = useState('');
   const [options, setOptions] = useState<{ value: string }[]>([]);
@@ -60,5 +58,5 @@ const Complete: React.FC = () => {
   );
 };
 
-ReactDOM.render(<Complete />, mountNode);
+export default () => <Complete />;
 ```

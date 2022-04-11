@@ -83,14 +83,14 @@ class SiderDemo extends React.Component {
   }
 }
 
-ReactDOM.render(<SiderDemo />, mountNode);
+export default () => <SiderDemo />;
 ```
 
 ```css
 #components-layout-demo-custom-trigger .trigger {
+  padding: 0 24px;
   font-size: 18px;
   line-height: 64px;
-  padding: 0 24px;
   cursor: pointer;
   transition: color 0.3s;
 }

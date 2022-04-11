@@ -6,7 +6,7 @@ import Menu from '../../menu';
 import mountTest from '../../../tests/shared/mountTest';
 import rtlTest from '../../../tests/shared/rtlTest';
 
-const { Sider, Content } = Layout;
+const { Sider, Content, Footer, Header } = Layout;
 
 describe('Layout', () => {
   mountTest(Layout);
@@ -204,16 +204,16 @@ describe('Layout', () => {
       </Sider>,
     );
 
-    wrapper.find('.ant-menu-item').simulate('mouseenter');
+    wrapper.find('.ant-menu-item').hostNodes().simulate('mouseenter');
     jest.runAllTimers();
     wrapper.update();
     expect(wrapper.find('.ant-tooltip-inner').length).toBeFalsy();
-    wrapper.find('.ant-menu-item').simulate('mouseout');
+    wrapper.find('.ant-menu-item').hostNodes().simulate('mouseout');
     jest.runAllTimers();
     wrapper.update();
 
     wrapper.setProps({ collapsed: true });
-    wrapper.find('.ant-menu-item').simulate('mouseenter');
+    wrapper.find('.ant-menu-item').hostNodes().simulate('mouseenter');
     jest.runAllTimers();
     wrapper.update();
     expect(wrapper.find('.ant-tooltip-inner').length).toBeTruthy();
@@ -283,5 +283,21 @@ describe('Sider', () => {
       </Sider>,
     );
     expect(wrapper.find('.ant-layout-sider-zero-width-trigger').find('.my-trigger').length).toBe(1);
+  });
+
+  ['Layout', 'Header', 'Footer', 'Sider'].forEach(tag => {
+    const ComponentMap = { Layout, Header, Footer, Sider };
+    it(`should get ${tag} element from ref`, () => {
+      const ref = React.createRef();
+      const onSelect = jest.fn();
+      const Component = ComponentMap[tag];
+
+      mount(
+        <Component onSelect={onSelect} ref={ref}>
+          {tag}
+        </Component>,
+      );
+      expect(ref.current instanceof HTMLElement).toBe(true);
+    });
   });
 });

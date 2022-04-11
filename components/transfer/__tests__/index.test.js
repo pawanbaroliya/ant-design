@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-use-before-define: "off" */
 import React from 'react';
-import { render, mount } from 'enzyme';
+import { mount } from 'enzyme';
 import Transfer from '..';
 import TransferList from '../list';
 import TransferOperation from '../operation';
@@ -97,8 +97,8 @@ describe('Transfer', () => {
   rtlTest(Transfer);
 
   it('should render correctly', () => {
-    const wrapper = render(<Transfer {...listCommonProps} />);
-    expect(wrapper).toMatchSnapshot();
+    const wrapper = mount(<Transfer {...listCommonProps} />);
+    expect(wrapper.render()).toMatchSnapshot();
   });
 
   it('should move selected keys to corresponding list', () => {
@@ -283,6 +283,19 @@ describe('Transfer', () => {
     expect(headerText(wrapper)).toEqual('1/2 People');
   });
 
+  it('should display the correct notFoundContent', () => {
+    const wrapper = mount(
+      <Transfer dataSource={[]} locale={{ notFoundContent: ['No Source', 'No Target'] }} />,
+    );
+
+    expect(
+      wrapper.find(TransferList).at(0).find('.ant-transfer-list-body-not-found').at(0).text(),
+    ).toEqual('No Source');
+    expect(
+      wrapper.find(TransferList).at(1).find('.ant-transfer-list-body-not-found').at(0).text(),
+    ).toEqual('No Target');
+  });
+
   it('should just check the filtered item when click on check all after search by input', () => {
     const filterOption = (inputValue, option) => option.description.indexOf(inputValue) > -1;
     const renderFunc = item => item.title;
@@ -400,8 +413,8 @@ describe('Transfer', () => {
       targetKeys: ['c', 'b'],
       lazy: false,
     };
-    const wrapper = render(<Transfer {...sortedTargetKeyProps} render={item => item.title} />);
-    expect(wrapper).toMatchSnapshot();
+    const wrapper = mount(<Transfer {...sortedTargetKeyProps} render={item => item.title} />);
+    expect(wrapper.render()).toMatchSnapshot();
   });
 
   it('should add custom styles when their props are provided', () => {
@@ -475,7 +488,7 @@ describe('Transfer', () => {
         render={record => ({ value: `${record.title} value`, label: 'label' })}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(component.render()).toMatchSnapshot();
   });
 
   it('should render correct checkbox label when checkboxLabel is defined', () => {
@@ -541,5 +554,20 @@ describe('Transfer', () => {
     const wrapper = mount(<Transfer {...listCommonProps} onChange={onChange} oneWay />);
     wrapper.find('.ant-transfer-list-content-item-remove').first().simulate('click');
     expect(onChange).toHaveBeenCalledWith([], 'left', ['b']);
+  });
+});
+
+describe('immutable data', () => {
+  // https://github.com/ant-design/ant-design/issues/28662
+  it('dataSource is frozen', () => {
+    const mockData = [
+      Object.freeze({
+        id: 0,
+        title: `title`,
+        description: `description`,
+      }),
+    ];
+    const wrapper = mount(<Transfer rowKey={item => item.id} dataSource={mockData} />);
+    expect(wrapper.render()).toMatchSnapshot();
   });
 });

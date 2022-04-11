@@ -9,9 +9,13 @@ title:
 
 通过 `filterDropdown` 自定义的列筛选功能，并实现一个搜索列的示例。
 
+给函数 `clearFilters` 添加 `boolean` 类型参数 `closeDropdown`，是否关闭筛选菜单，默认为 `true`。添加 `boolean` 类型参数 `confirm`，清除筛选时是否提交已选项，默认 `true`。
+
 ## en-US
 
 Implement a customized column search example via `filterDropdown`.
+
+Add the `boolean` type parameter `closeDropdown` to the function `clearFilters`. Whether to close the filter menu is `true` by default. Add the `boolean` type parameter `confirm` to clear whether to submit the option during filtering. The default is `true`.
 
 ```jsx
 import { Table, Input, Button, Space } from 'antd';
@@ -62,7 +66,7 @@ class App extends React.Component {
           value={selectedKeys[0]}
           onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
-          style={{ width: 188, marginBottom: 8, display: 'block' }}
+          style={{ marginBottom: 8, display: 'block' }}
         />
         <Space>
           <Button
@@ -76,6 +80,19 @@ class App extends React.Component {
           </Button>
           <Button onClick={() => this.handleReset(clearFilters)} size="small" style={{ width: 90 }}>
             Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false });
+              this.setState({
+                searchText: selectedKeys[0],
+                searchedColumn: dataIndex,
+              });
+            }}
+          >
+            Filter
           </Button>
         </Space>
       </div>
@@ -137,11 +154,13 @@ class App extends React.Component {
         dataIndex: 'address',
         key: 'address',
         ...this.getColumnSearchProps('address'),
+        sorter: (a, b) => a.address.length - b.address.length,
+        sortDirections: ['descend', 'ascend'],
       },
     ];
     return <Table columns={columns} dataSource={data} />;
   }
 }
 
-ReactDOM.render(<App />, mountNode);
+export default () => <App />;
 ```

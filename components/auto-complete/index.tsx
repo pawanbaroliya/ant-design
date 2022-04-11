@@ -1,18 +1,26 @@
 /**
  * TODO: 4.0
- * - remove `dataSource`
+ *
+ * - Remove `dataSource`
  * - `size` not work with customizeInput
- * - customizeInput not feedback `ENTER` key since accessibility enhancement
+ * - CustomizeInput not feedback `ENTER` key since accessibility enhancement
  */
 
 import * as React from 'react';
 import toArray from 'rc-util/lib/Children/toArray';
 import classNames from 'classnames';
-import omit from 'omit.js';
-import Select, { InternalSelectProps, OptionType, RefSelectProps } from '../select';
+import omit from 'rc-util/lib/omit';
+import type { BaseSelectRef } from 'rc-select';
+import Select, {
+  BaseOptionType,
+  DefaultOptionType,
+  InternalSelectProps,
+  RefSelectProps,
+} from '../select';
 import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
 import devWarning from '../_util/devWarning';
 import { isValidElement } from '../_util/reactNode';
+import { InputStatus } from '../_util/statusUtils';
 
 const { Option } = Select;
 
@@ -22,12 +30,15 @@ export interface DataSourceItemObject {
 }
 export type DataSourceItemType = DataSourceItemObject | React.ReactNode;
 
-export interface AutoCompleteProps
-  extends Omit<
-    InternalSelectProps<string>,
+export interface AutoCompleteProps<
+  ValueType = any,
+  OptionType extends BaseOptionType | DefaultOptionType = DefaultOptionType,
+> extends Omit<
+    InternalSelectProps<ValueType, OptionType>,
     'inputIcon' | 'loading' | 'mode' | 'optionLabelProp' | 'labelInValue'
   > {
   dataSource?: DataSourceItemType[];
+  status?: InputStatus;
 }
 
 function isSelectOptionOrSelectOptGroup(child: any): Boolean {
@@ -115,7 +126,10 @@ const AutoComplete: React.ForwardRefRenderFunction<RefSelectProps, AutoCompleteP
             prefixCls={prefixCls}
             className={classNames(`${prefixCls}-auto-complete`, className)}
             mode={Select.SECRET_COMBOBOX_MODE_DO_NOT_USE as any}
-            getInputElement={getInputElement}
+            {...{
+              // Internal api
+              getInputElement,
+            }}
           >
             {optionChildren}
           </Select>
@@ -125,12 +139,19 @@ const AutoComplete: React.ForwardRefRenderFunction<RefSelectProps, AutoCompleteP
   );
 };
 
-const RefAutoComplete = React.forwardRef<RefSelectProps, AutoCompleteProps>(AutoComplete);
-
-type RefAutoCompleteWithOption = typeof RefAutoComplete & {
-  Option: OptionType;
+const RefAutoComplete = React.forwardRef<RefSelectProps, AutoCompleteProps>(
+  AutoComplete,
+) as unknown as (<
+  ValueType = any,
+  OptionType extends BaseOptionType | DefaultOptionType = DefaultOptionType,
+>(
+  props: React.PropsWithChildren<AutoCompleteProps<ValueType, OptionType>> & {
+    ref?: React.Ref<BaseSelectRef>;
+  },
+) => React.ReactElement) & {
+  Option: typeof Option;
 };
 
-(RefAutoComplete as RefAutoCompleteWithOption).Option = Option;
+RefAutoComplete.Option = Option;
 
-export default RefAutoComplete as RefAutoCompleteWithOption;
+export default RefAutoComplete;

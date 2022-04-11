@@ -23,7 +23,7 @@ import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/i
 
 const { Header, Content, Footer, Sider } = Layout;
 
-ReactDOM.render(
+export default () => (
   <Layout>
     <Sider
       breakpoint="lg"
@@ -60,16 +60,15 @@ ReactDOM.render(
       </Content>
       <Footer style={{ textAlign: 'center' }}>Ant Design ©2018 Created by Ant UED</Footer>
     </Layout>
-  </Layout>,
-  mountNode,
+  </Layout>
 );
 ```
 
 ```css
 #components-layout-demo-responsive .logo {
   height: 32px;
-  background: rgba(255, 255, 255, 0.2);
   margin: 16px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .site-layout-sub-header-background {

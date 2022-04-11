@@ -62,6 +62,15 @@ class App extends React.Component {
             <Button key="submit" type="primary" loading={loading} onClick={this.handleOk}>
               Submit
             </Button>,
+            <Button
+              key="link"
+              href="https://google.com"
+              type="primary"
+              loading={loading}
+              onClick={this.handleOk}
+            >
+              Search on Google
+            </Button>,
           ]}
         >
           <p>Some contents...</p>
@@ -75,5 +84,5 @@ class App extends React.Component {
   }
 }
 
-ReactDOM.render(<App />, mountNode);
+export default () => <App />;
 ```

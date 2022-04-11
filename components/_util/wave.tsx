@@ -1,5 +1,5 @@
 import * as React from 'react';
-import TransitionEvents from '@ant-design/css-animation/lib/Event';
+import { updateCSS } from 'rc-util/lib/Dom/dynamicCSS';
 import { supportRef, composeRef } from 'rc-util/lib/ref';
 import raf from './raf';
 import { ConfigConsumer, ConfigConsumerProps, CSPConfig, ConfigContext } from '../config-provider';
@@ -12,7 +12,7 @@ function isHidden(element: HTMLElement) {
   if (process.env.NODE_ENV === 'test') {
     return false;
   }
-  return !element || element.offsetParent === null;
+  return !element || element.offsetParent === null || element.hidden;
 }
 
 function isNotGrey(color: string) {
@@ -24,7 +24,12 @@ function isNotGrey(color: string) {
   return true;
 }
 
-export default class Wave extends React.Component<{ insertExtraNode?: boolean }> {
+export interface WaveProps {
+  insertExtraNode?: boolean;
+  disabled?: boolean;
+}
+
+export default class Wave extends React.Component<WaveProps> {
   static contextType = ConfigContext;
 
   private instance?: {
@@ -67,10 +72,12 @@ export default class Wave extends React.Component<{ insertExtraNode?: boolean }>
   }
 
   onClick = (node: HTMLElement, waveColor: string) => {
-    if (!node || isHidden(node) || node.className.indexOf('-leave') >= 0) {
+    const { insertExtraNode, disabled } = this.props;
+
+    if (disabled || !node || isHidden(node) || node.className.indexOf('-leave') >= 0) {
       return;
     }
-    const { insertExtraNode } = this.props;
+
     this.extraNode = document.createElement('div');
     const { extraNode } = this;
     const { getPrefixCls } = this.context;
@@ -78,7 +85,6 @@ export default class Wave extends React.Component<{ insertExtraNode?: boolean }>
     const attributeName = this.getAttributeName();
     node.setAttribute(attributeName, 'true');
     // Not white or transparent or grey
-    styleForPseudo = styleForPseudo || document.createElement('style');
     if (
       waveColor &&
       waveColor !== '#ffffff' &&
@@ -87,27 +93,30 @@ export default class Wave extends React.Component<{ insertExtraNode?: boolean }>
       !/rgba\((?:\d*, ){3}0\)/.test(waveColor) && // any transparent rgba color
       waveColor !== 'transparent'
     ) {
-      // Add nonce if CSP exist
-      if (this.csp && this.csp.nonce) {
-        styleForPseudo.nonce = this.csp.nonce;
-      }
-
       extraNode.style.borderColor = waveColor;
-      styleForPseudo.innerHTML = `
+
+      const nodeRoot = node.getRootNode?.() || node.ownerDocument;
+      const nodeBody: Element =
+        nodeRoot instanceof Document ? nodeRoot.body : (nodeRoot.firstChild as Element) ?? nodeRoot;
+
+      styleForPseudo = updateCSS(
+        `
       [${getPrefixCls('')}-click-animating-without-extra-node='true']::after, .${getPrefixCls(
-        '',
-      )}-click-animating-node {
+          '',
+        )}-click-animating-node {
         --antd-wave-shadow-color: ${waveColor};
-      }`;
-      if (!document.body.contains(styleForPseudo)) {
-        document.body.appendChild(styleForPseudo);
-      }
+      }`,
+        'antd-wave',
+        { csp: this.csp, attachTo: nodeBody },
+      );
     }
     if (insertExtraNode) {
       node.appendChild(extraNode);
     }
-    TransitionEvents.addStartEventListener(node, this.onTransitionStart);
-    TransitionEvents.addEndEventListener(node, this.onTransitionEnd);
+    ['transition', 'animation'].forEach(name => {
+      node.addEventListener(`${name}start`, this.onTransitionStart);
+      node.addEventListener(`${name}end`, this.onTransitionEnd);
+    });
   };
 
   onTransitionStart = (e: AnimationEvent) => {
@@ -190,8 +199,10 @@ export default class Wave extends React.Component<{ insertExtraNode?: boolean }>
     if (insertExtraNode && this.extraNode && node.contains(this.extraNode)) {
       node.removeChild(this.extraNode);
     }
-    TransitionEvents.removeStartEventListener(node, this.onTransitionStart);
-    TransitionEvents.removeEndEventListener(node, this.onTransitionEnd);
+    ['transition', 'animation'].forEach(name => {
+      node.removeEventListener(`${name}start`, this.onTransitionStart);
+      node.removeEventListener(`${name}end`, this.onTransitionEnd);
+    });
   }
 
   renderWave = ({ csp }: ConfigConsumerProps) => {

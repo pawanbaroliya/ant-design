@@ -8,7 +8,6 @@ import { FormItemPrefixContext } from './context';
 export interface FormListFieldData {
   name: number;
   key: number;
-  fieldKey: number;
 }
 
 export interface FormListOperation {
@@ -21,10 +20,11 @@ export interface FormListProps {
   prefixCls?: string;
   name: string | number | (string | number)[];
   rules?: ValidatorRule[];
+  initialValue?: any[];
   children: (
     fields: FormListFieldData[],
     operation: FormListOperation,
-    meta: { errors: React.ReactNode[] },
+    meta: { errors: React.ReactNode[]; warnings: React.ReactNode[] },
   ) => React.ReactNode;
 }
 
@@ -37,22 +37,28 @@ const FormList: React.FC<FormListProps> = ({
 
   const { getPrefixCls } = React.useContext(ConfigContext);
   const prefixCls = getPrefixCls('form', customizePrefixCls);
+  const contextValue = React.useMemo(
+    () => ({
+      prefixCls,
+      status: 'error' as const,
+    }),
+    [prefixCls],
+  );
 
   return (
     <List {...props}>
-      {(fields, operation, meta) => {
-        return (
-          <FormItemPrefixContext.Provider value={{ prefixCls, status: 'error' }}>
-            {children(
-              fields.map(field => ({ ...field, fieldKey: field.key })),
-              operation,
-              {
-                errors: meta.errors,
-              },
-            )}
-          </FormItemPrefixContext.Provider>
-        );
-      }}
+      {(fields, operation, meta) => (
+        <FormItemPrefixContext.Provider value={contextValue}>
+          {children(
+            fields.map(field => ({ ...field, fieldKey: field.key })),
+            operation,
+            {
+              errors: meta.errors,
+              warnings: meta.warnings,
+            },
+          )}
+        </FormItemPrefixContext.Provider>
+      )}
     </List>
   );
 };

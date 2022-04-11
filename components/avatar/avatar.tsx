@@ -9,7 +9,7 @@ import useBreakpoint from '../grid/hooks/useBreakpoint';
 import SizeContext, { AvatarSize } from './SizeContext';
 
 export interface AvatarProps {
-  /** Shape of avatar, options:`circle`, `square` */
+  /** Shape of avatar, options: `circle`, `square` */
   shape?: 'circle' | 'square';
   /*
    * Size of avatar, options: `large`, `small`, `default`
@@ -22,13 +22,14 @@ export interface AvatarProps {
   /** Srcset of image avatar */
   srcSet?: string;
   draggable?: boolean;
-  /** icon to be used in avatar */
+  /** Icon to be used in avatar */
   icon?: React.ReactNode;
   style?: React.CSSProperties;
   prefixCls?: string;
   className?: string;
   children?: React.ReactNode;
   alt?: string;
+  crossOrigin?: '' | 'anonymous' | 'use-credentials';
   /* callback when img load error */
   /* return false to prevent Avatar show default fallback behavior, then you can do fallback by your self */
   onError?: () => boolean;
@@ -95,12 +96,16 @@ const InternalAvatar: React.ForwardRefRenderFunction<unknown, AvatarProps> = (pr
     alt,
     draggable,
     children,
+    crossOrigin,
     ...others
   } = props;
 
   const size = customSize === 'default' ? groupSize : customSize;
 
-  const screens = useBreakpoint();
+  const needResponsive = Object.keys(typeof size === 'object' ? size || {} : {}).some(key =>
+    ['xs', 'sm', 'md', 'lg', 'xl', 'xxl'].includes(key),
+  );
+  const screens = useBreakpoint(needResponsive);
   const responsiveSizeStyle: React.CSSProperties = React.useMemo(() => {
     if (typeof size !== 'object') {
       return {};
@@ -138,9 +143,9 @@ const InternalAvatar: React.ForwardRefRenderFunction<unknown, AvatarProps> = (pr
     prefixCls,
     sizeCls,
     {
-      [`${prefixCls}-${shape}`]: shape,
+      [`${prefixCls}-${shape}`]: !!shape,
       [`${prefixCls}-image`]: hasImageElement || (src && isImgExist),
-      [`${prefixCls}-icon`]: icon,
+      [`${prefixCls}-icon`]: !!icon,
     },
     className,
   );
@@ -158,7 +163,14 @@ const InternalAvatar: React.ForwardRefRenderFunction<unknown, AvatarProps> = (pr
   let childrenToRender;
   if (typeof src === 'string' && isImgExist) {
     childrenToRender = (
-      <img src={src} draggable={draggable} srcSet={srcSet} onError={handleImgLoadError} alt={alt} />
+      <img
+        src={src}
+        draggable={draggable}
+        srcSet={srcSet}
+        onError={handleImgLoadError}
+        alt={alt}
+        crossOrigin={crossOrigin}
+      />
     );
   } else if (hasImageElement) {
     childrenToRender = src;

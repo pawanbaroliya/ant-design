@@ -29,14 +29,16 @@ import {
 
 const { Header, Content, Footer, Sider } = Layout;
 
-ReactDOM.render(
-  <Layout>
+export default () => (
+  <Layout hasSider>
     <Sider
       style={{
         overflow: 'auto',
         height: '100vh',
         position: 'fixed',
         left: 0,
+        top: 0,
+        bottom: 0,
       }}
     >
       <div className="logo" />
@@ -170,16 +172,15 @@ ReactDOM.render(
       </Content>
       <Footer style={{ textAlign: 'center' }}>Ant Design ©2018 Created by Ant UED</Footer>
     </Layout>
-  </Layout>,
-  mountNode,
+  </Layout>
 );
 ```
 
 ```css
 #components-layout-demo-fixed-sider .logo {
   height: 32px;
-  background: rgba(255, 255, 255, 0.2);
   margin: 16px;
+  background: rgba(255, 255, 255, 0.2);
 }
 .site-layout .site-layout-background {
   background: #fff;

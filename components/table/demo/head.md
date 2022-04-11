@@ -85,10 +85,7 @@ const columns = [
         value: 'New York',
       },
     ],
-    filterMultiple: false,
     onFilter: (value, record) => record.address.indexOf(value) === 0,
-    sorter: (a, b) => a.address.length - b.address.length,
-    sortDirections: ['descend', 'ascend'],
   },
 ];
 
@@ -123,5 +120,5 @@ function onChange(pagination, filters, sorter, extra) {
   console.log('params', pagination, filters, sorter, extra);
 }
 
-ReactDOM.render(<Table columns={columns} dataSource={data} onChange={onChange} />, mountNode);
+export default () => <Table columns={columns} dataSource={data} onChange={onChange} />;
 ```

@@ -3,11 +3,11 @@ const chalk = require('chalk');
 const { spawn } = require('child_process');
 const jsdom = require('jsdom');
 const jQuery = require('jquery');
-const fetch = require('node-fetch');
+const fetch = require('isomorphic-fetch');
 const open = require('open');
 const fs = require('fs-extra');
 const path = require('path');
-const simpleGit = require('simple-git/promise');
+const simpleGit = require('simple-git');
 const inquirer = require('inquirer');
 
 const { JSDOM } = jsdom;
@@ -19,7 +19,7 @@ const $ = jQuery(window);
 
 const QUERY_TITLE = '.gh-header-title .js-issue-title';
 const QUERY_DESCRIPTION_LINES = '.comment-body table tbody tr';
-const QUERY_AUTHOR = '.timeline-comment-header-text .author:first';
+const QUERY_AUTHOR = '.pull-discussion-timeline .TimelineItem:first .author:first';
 // https://github.com/orgs/ant-design/teams/ant-design-collaborators/members
 const MAINTAINERS = [
   'zombiej',
@@ -34,7 +34,8 @@ const MAINTAINERS = [
   'hengkx',
   'Rustin-Liu',
   'fireairforce',
-  'Kermit-Xuan',
+  'kerm1it',
+  'MadCcc',
 ].map(author => author.toLowerCase());
 
 const cwd = process.cwd();
@@ -199,9 +200,9 @@ async function printLog() {
   console.log('\n');
   console.log(chalk.yellow('🇨🇳 Chinese changelog:'));
   console.log('\n');
-  printPR('chinese', chinese => {
-    return chinese[chinese.length - 1] === '。' || !chinese ? chinese : `${chinese}。`;
-  });
+  printPR('chinese', chinese =>
+    chinese[chinese.length - 1] === '。' || !chinese ? chinese : `${chinese}。`,
+  );
 
   console.log('\n-----\n');
 

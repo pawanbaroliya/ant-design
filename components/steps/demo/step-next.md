@@ -73,18 +73,18 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, mountNode);
+export default () => <App />;
 ```
 
 ```css
 .steps-content {
+  min-height: 200px;
   margin-top: 16px;
+  padding-top: 80px;
+  text-align: center;
+  background-color: #fafafa;
   border: 1px dashed #e9e9e9;
   border-radius: 2px;
-  background-color: #fafafa;
-  min-height: 200px;
-  text-align: center;
-  padding-top: 80px;
 }
 
 .steps-action {

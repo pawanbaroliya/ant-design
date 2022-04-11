@@ -11,7 +11,7 @@ title:
 
 有部分定制的样式代码，由于输入标签长度不确定，需要根据具体情况自行调整。
 
-> 🛎️ 想要 3 分钟实现？ 试试 ProFrom 的[查询表单](https://procomponents.ant.design/components/form#%E6%9F%A5%E8%AF%A2%E7%AD%9B%E9%80%89)！
+> 🛎️ 想要 3 分钟实现？ 试试 ProForm 的[查询表单](https://procomponents.ant.design/components/form#%E6%9F%A5%E8%AF%A2%E7%AD%9B%E9%80%89)！
 
 ## en-US
 
@@ -21,8 +21,10 @@ Because the width of label is not fixed, you may need to adjust it by customizin
 
 ```tsx
 import React, { useState } from 'react';
-import { Form, Row, Col, Input, Button } from 'antd';
+import { Form, Row, Col, Input, Button, Select } from 'antd';
 import { DownOutlined, UpOutlined } from '@ant-design/icons';
+
+const { Option } = Select;
 
 const AdvancedSearchForm = () => {
   const [expand, setExpand] = useState(false);
@@ -44,7 +46,16 @@ const AdvancedSearchForm = () => {
               },
             ]}
           >
-            <Input placeholder="placeholder" />
+            {i % 3 !== 1 ? (
+              <Input placeholder="placeholder" />
+            ) : (
+              <Select defaultValue="2">
+                <Option value="1">1</Option>
+                <Option value="2">
+                  longlonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglonglong
+                </Option>
+              </Select>
+            )}
           </Form.Item>
         </Col>,
       );
@@ -52,7 +63,7 @@ const AdvancedSearchForm = () => {
     return children;
   };
 
-  const onFinish = values => {
+  const onFinish = (values: any) => {
     console.log('Received values of form: ', values);
   };
 
@@ -91,12 +102,11 @@ const AdvancedSearchForm = () => {
   );
 };
 
-ReactDOM.render(
+export default () => (
   <div>
     <AdvancedSearchForm />
     <div className="search-result-list">Search Result List</div>
-  </div>,
-  mountNode,
+  </div>
 );
 ```
 

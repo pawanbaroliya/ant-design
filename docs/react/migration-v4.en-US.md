@@ -17,6 +17,7 @@ This document will help you upgrade from antd `3.x` version to antd `4.x` versio
 ### Design specification
 
 - Line height changes from `1.5`(`21px`) to `1.5715`(`22px`).
+- Darken font color from `rgba(0, 0, 0, 0.65)` to `rgba(0, 0, 0, 0.85)`. `4.6.0`
 - Basic rounded corner adjustment, changed from `4px` to `2px`.
 - Exchanged Selected and Hovered color.
 - Global shadow optimization, adjusted to three layers of shadows to distinguish control hierarchies.
@@ -34,6 +35,7 @@ This document will help you upgrade from antd `3.x` version to antd `4.x` versio
 - The minimum supported version of IE is IE 11.
 - The minimum supported version of React is React 16.9, and some components have started to refactor using hooks.
   - Internal using `useMemo` for performance, do not use mutable data as props.
+- The minimum supported version of less.js is `3.1.0`, we recommend using less `4.x`.
 
 #### Remove deprecated API
 
@@ -57,6 +59,7 @@ This document will help you upgrade from antd `3.x` version to antd `4.x` versio
 - Removed `combobox` mode, please use `AutoComplete` instead.
 - Removed the `rowSelection.hideDefaultSelections` property of Table, please use `SELECTION_ALL` and `SELECTION_INVERT` in `rowSelection.selections` instead, [Custom Selection](/components/table/#components-table-demo-row-selection-custom).
 - Deprecated Button.Group, please use `Space` instead.
+- less variables were changed like DatePicker/TimePicker/Calendar related variables or [@btn-padding-base](https://github.com/ant-design/ant-design/issues/28141), please check [3.x variables](https://github.com/ant-design/ant-design/blob/3.x-stable/components/style/themes/default.less) and [4.x variables](https://github.com/ant-design/ant-design/blob/master/components/style/themes/default.less) for more details.
 
 #### Icon upgrade
 
@@ -138,7 +141,9 @@ const Demo = () => (
 - Table rewrite.
   - will keep at least one column even if `columns` is empty.
   - Nest `dataIndex` definition changes from `'xxx.yyy'` to `['xxx', 'yyy']`.
-- Pagination will default set `showSizeChanger` to `true` since `4.1.0`. This change also applied on Table component.
+- Pagination
+  - will default set `showSizeChanger` to `true` since `4.1.0`. This change also applied on Table component.
+  - `onChange` will also trigger when `pageSize` value changed.
 - Tabs rewrite. ([4.3.0](https://github.com/ant-design/ant-design/pull/24552))
   - Dom structrue is changed, please check style if you override tabs css.
   - `onPrevClick` 和 `onNextClick` would be not working anymore since we improve tabs scroll behavior.

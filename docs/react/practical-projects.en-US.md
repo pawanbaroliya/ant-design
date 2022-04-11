@@ -3,13 +3,13 @@ order: 3
 title: Real project with umi
 ---
 
-In real project development, you may need data flow solutions such as Redux or MobX. Ant Design React is a UI library that can be used with data flow solutions and application frameworks in any React ecosystem. Based on the business scenario, we launched a pluggable enterprise-level application framework umi, which is recommended for use in the project.
+In real project development, you may need data flow solutions such as Redux or MobX. Ant Design React is a UI library that can be used with data flow solutions and application frameworks in any React ecosystem. Based on the business scenario, we launched a pluggable enterprise-level application framework [Umi](https://umijs.org), which is recommended for use in the project.
 
-And [umi](http://umijs.org/) is a routing-based framework that supports [next.js-like conventional routing](https://umijs.org/guide/router.html) and various advanced routing functions, such as [routing-level on-demand loading](https://umijs.org/en/plugin/umi-plugin-react.html#dynamicimport). With a complete [plugin system](https://umijs.org/plugin/) that covers every life cycle from source code to build product, umi is able to support various functional extensions and business needs; meanwhile [Umi UI](https://umijs.org/guide/umi-ui.html) is provided to enhance the development experience and development efficiency through Visual Aided Programming (VAP).
+And [Umi](https://umijs.org) is a routing-based framework that supports [next.js-like conventional routing](https://umijs.org/docs/convention-routing) and various advanced routing functions, such as [routing-level on-demand loading](https://umijs.org/config#dynamicimport). With a complete [plugin system](https://umijs.org/plugins/api) that covers every life cycle from source code to build product, Umi is able to support various functional extensions and business needs; meanwhile [Umi UI](https://umijs.org/docs/use-umi-ui) is provided to enhance the development experience and development efficiency through Visual Aided Programming (VAP).
 
-> You may also be interested in [Ant Design Pro](https://pro.ant.design/), an Out-of-box UI solution for enterprise applications based on umi, dva and ant design.
+> You may also be interested in [Ant Design Pro](https://pro.ant.design/), an Out-of-box UI solution for enterprise applications based on Umi and antd.
 
-This article will guide you to create a simple application from zero using Umi, dva and antd.
+This article will guide you to create a simple application from zero using Umi and antd.
 
 ## Install Umi
 
@@ -17,20 +17,11 @@ It is recommended to use yarn to create an application and execute the following
 
 ```bash
 $ mkdir myapp && cd myapp
-$ yarn create umi
+$ yarn create @umijs/umi-app
 $ yarn
 ```
 
-> If you use npm, you can execute `npx create-umi` with the same effect.
-
-## Install presets
-
-Execute the following command, install presets(including the antd, dva, locale plugins):
-
-```bash
-# 或 npm i @umijs/preset-react -D
-$ yarn add @umijs/preset-react -D
-```
+> If you use npm, you can execute `npx @umijs/create-umi-app` with the same effect.
 
 > And if you want to use a fixed version of antd, you can install additional antd dependency in your project, and the antd dependencies declared in package.json will be used first.
 
@@ -71,7 +62,7 @@ run `yarn start` then open [http://localhost:8000/products](http://localhost:800
 
 ## Write UI Components
 
-As your application grows and you notice you are sharing UI elements between multiple pages (or using them multiple times on the same page), in umi it's called reusable components.
+As your application grows and you notice you are sharing UI elements between multiple pages (or using them multiple times on the same page), in Umi it's called reusable components.
 
 Let's create a `ProductList` component that we can use in multiple places to show a list of products.
 
@@ -109,7 +100,34 @@ export default ProductList;
 
 The file name corresponds to the name of the final model, and you can consume the data in the model through the API provided by the plug-in.
 
-Let's take a simple table as an example. First you need to create a new file `src/models/useProductList.ts`.
+Let's take a simple table as an example. First we create a new file `src/services/product.ts` for remote API.
+
+```tsx
+/*
+export function queryProductList() {
+  return fetch('/api/products').then(res => res.json());
+}
+*/
+// mock request service by setTimeout
+export function queryProductList() {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve([
+        {
+          id: 1,
+          name: 'dva',
+        },
+        {
+          id: 2,
+          name: 'antd',
+        },
+      ]);
+    }, 2000);
+  });
+}
+```
+
+Then you need to create a new file `src/models/useProductList.ts`.
 
 ```tsx
 import { useRequest } from 'umi';
@@ -192,7 +210,7 @@ export default (
 );
 ```
 
-Click here [Quick Start](https://prolayout.ant.design/getting-started).
+Click here [Quick Start](https://procomponents.ant.design/en-US/components/layout).
 
 ## ProTable
 
@@ -245,7 +263,7 @@ const Products = () => {
 };
 ```
 
-ProTable provides preset logic to handle loading, pagination and search forms, which can greatly reduce the amount of code, click here [Quick Start](https://protable.ant.design/getting-started).
+ProTable provides preset logic to handle loading, pagination and search forms, which can greatly reduce the amount of code, click here [ProTable](https://procomponents.ant.design/en-US/components/table).
 
 ## Build
 
@@ -271,9 +289,9 @@ We have completed a simple application, but you may still have lots of questions
 
 You can:
 
-- Visit [umi official website](https://umijs.org/) and [dva official website](https://dvajs.com/)
-- Know [the umi routes](https://umijs.org/zh/guide/router.html)
-- Know [how to deploy umi application](https://umijs.org/zh/guide/deploy.html)
+- Visit [Umi official website](https://umijs.org/)
+- Know [Umi routes](https://umijs.org/docs/routing)
+- Know [how to deploy Umi application](https://umijs.org/docs/deployment)
 - Scaffolding out of the box [Ant Design Pro](https://pro.ant.design)
-- Advanced Layout [ProLayout](https://prolayout.ant.design)
-- Advanced Table [ProTable](https://protable.ant.design)
+- Advanced Layout [ProLayout](https://procomponents.ant.design/en-US/components/layout)
+- Advanced Table [ProTable](https://procomponents.ant.design/en-US/components/table)

@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import { mount, render } from 'enzyme';
+import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { act } from 'react-dom/test-utils';
 import { SearchOutlined } from '@ant-design/icons';
 import { resetWarned } from 'rc-util/lib/warning';
@@ -28,7 +30,7 @@ describe('Button', () => {
   rtlTest(() => <Button.Group size="middle" />);
 
   it('renders correctly', () => {
-    expect(<Button>Follow</Button>).toMatchRenderedSnapshot();
+    expect(mount(<Button>Follow</Button>).render()).toMatchSnapshot();
   });
 
   it('mount correctly', () => {
@@ -38,8 +40,8 @@ describe('Button', () => {
   it('warns if size is wrong', () => {
     const mockWarn = jest.fn();
     jest.spyOn(console, 'warn').mockImplementation(mockWarn);
-    const size = ('who am I' as any) as SizeType;
-    render(<Button.Group size={size} />);
+    const size = 'who am I' as any as SizeType;
+    mount(<Button.Group size={size} />);
     expect(mockWarn).toHaveBeenCalledTimes(1);
     expect(mockWarn.mock.calls[0][0]).toMatchObject({
       message: 'unreachable case: "who am I"',
@@ -47,33 +49,39 @@ describe('Button', () => {
   });
 
   it('renders Chinese characters correctly', () => {
-    expect(<Button>按钮</Button>).toMatchRenderedSnapshot();
+    expect(mount(<Button>按钮</Button>).render()).toMatchSnapshot();
     // should not insert space when there is icon
-    expect(<Button icon={<SearchOutlined />}>按钮</Button>).toMatchRenderedSnapshot();
+    expect(mount(<Button icon={<SearchOutlined />}>按钮</Button>).render()).toMatchSnapshot();
     // should not insert space when there is icon
     expect(
-      <Button>
-        <SearchOutlined />
-        按钮
-      </Button>,
-    ).toMatchRenderedSnapshot();
+      mount(
+        <Button>
+          <SearchOutlined />
+          按钮
+        </Button>,
+      ).render(),
+    ).toMatchSnapshot();
     // should not insert space when there is icon
-    expect(<Button icon={<SearchOutlined />}>按钮</Button>).toMatchRenderedSnapshot();
+    expect(mount(<Button icon={<SearchOutlined />}>按钮</Button>).render()).toMatchSnapshot();
     // should not insert space when there is icon while loading
     expect(
-      <Button icon={<SearchOutlined />} loading>
-        按钮
-      </Button>,
-    ).toMatchRenderedSnapshot();
+      mount(
+        <Button icon={<SearchOutlined />} loading>
+          按钮
+        </Button>,
+      ).render(),
+    ).toMatchSnapshot();
     // should insert space while loading
-    expect(<Button loading>按钮</Button>).toMatchRenderedSnapshot();
+    expect(mount(<Button loading>按钮</Button>).render()).toMatchSnapshot();
 
     // should insert space while only one nested element
     expect(
-      <Button>
-        <span>按钮</span>
-      </Button>,
-    ).toMatchRenderedSnapshot();
+      mount(
+        <Button>
+          <span>按钮</span>
+        </Button>,
+      ).render(),
+    ).toMatchSnapshot();
   });
 
   it('renders Chinese characters correctly in HOC', () => {
@@ -206,9 +214,9 @@ describe('Button', () => {
   });
 
   it('fixbug renders {0} , 0 and {false}', () => {
-    expect(<Button>{0}</Button>).toMatchRenderedSnapshot();
-    expect(<Button>0</Button>).toMatchRenderedSnapshot();
-    expect(<Button>{false}</Button>).toMatchRenderedSnapshot();
+    expect(mount(<Button>{0}</Button>).render()).toMatchSnapshot();
+    expect(mount(<Button>0</Button>).render()).toMatchSnapshot();
+    expect(mount(<Button>{false}</Button>).render()).toMatchSnapshot();
   });
 
   it('should not render as link button when href is undefined', async () => {
@@ -257,12 +265,15 @@ describe('Button', () => {
   it('should warning when pass a string as icon props', () => {
     resetWarned();
     const warnSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    mount(<Button type="primary" icon="ab" />);
+
+    render(<Button type="primary" icon="ab" />);
     expect(warnSpy).not.toHaveBeenCalled();
-    mount(<Button type="primary" icon="search" />);
+
+    render(<Button type="primary" icon="search" />);
     expect(warnSpy).toHaveBeenCalledWith(
       `Warning: [antd: Button] \`icon\` is using ReactNode instead of string naming in v4. Please check \`search\` at https://ant.design/components/icon`,
     );
+
     warnSpy.mockRestore();
   });
 
@@ -299,5 +310,27 @@ describe('Button', () => {
         throw new Error('Should not called!!!');
       },
     });
+  });
+
+  it('should not redirect when button is disabled', () => {
+    const onClick = jest.fn();
+    const wrapper = mount(
+      <Button href="https://ant.design" onClick={onClick} disabled>
+        click me
+      </Button>,
+    );
+    wrapper.simulate('click');
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  // https://github.com/ant-design/ant-design/issues/30953
+  it('should handle fragment as children', () => {
+    const wrapper = mount(
+      <Button>
+        {/* eslint-disable-next-line react/jsx-no-useless-fragment */}
+        <>text</>
+      </Button>,
+    );
+    expect(wrapper.render()).toMatchSnapshot();
   });
 });

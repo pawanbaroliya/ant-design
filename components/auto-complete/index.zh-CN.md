@@ -23,7 +23,7 @@ cover: https://gw.alipayobjects.com/zos/alicdn/qtJm4yt45/AutoComplete.svg
 
 | 参数 | 说明 | 类型 | 默认值 | 版本 |
 | --- | --- | --- | --- | --- |
-| allowClear | 支持清除, 单选模式有效 | boolean | false |  |
+| allowClear | 支持清除 | boolean | false |  |
 | autoFocus | 自动获取焦点 | boolean | false |  |
 | backfill | 使用键盘选择选项的时候把选中项回填到输入框中 | boolean | false |  |
 | children (自动完成的数据源) | 自动完成的数据源 | React.ReactElement&lt;OptionProps> \| Array&lt;React.ReactElement&lt;OptionProps>> | - |  |
@@ -40,6 +40,7 @@ cover: https://gw.alipayobjects.com/zos/alicdn/qtJm4yt45/AutoComplete.svg
 | open | 是否展开下拉菜单 | boolean | - |  |
 | options | 数据化配置选项内容，相比 jsx 定义会获得更好的渲染性能 | { label, value }\[] | - |  |
 | placeholder | 输入框提示 | string | - |  |
+| status | 设置校验状态 | 'error' \| 'warning' | - | 4.19.0 |
 | value | 指定当前选中的条目 | string | - |  |
 | onBlur | 失去焦点时的回调 | function() | - |  |
 | onChange | 选中 option，或 input 的 value 变化时，调用此函数 | function(value) | - |  |
@@ -47,13 +48,14 @@ cover: https://gw.alipayobjects.com/zos/alicdn/qtJm4yt45/AutoComplete.svg
 | onFocus | 获得焦点时的回调 | function() | - |  |
 | onSearch | 搜索补全项的时候调用 | function(value) | - |  |
 | onSelect | 被选中时调用，参数为选中项的 value 值 | function(value, option) | - |  |
+| onClear | 清除内容时回调 | function | - | 4.6.0 |
 
 ## 方法
 
-| 名称 | 描述 | 版本 |
-| --- | --- | --- |
-| blur() | 移除焦点 |  |
-| focus() | 获取焦点 |  |
+| 名称    | 描述     | 版本 |
+| ------- | -------- | ---- |
+| blur()  | 移除焦点 |      |
+| focus() | 获取焦点 |      |
 
 ## FAQ
 
