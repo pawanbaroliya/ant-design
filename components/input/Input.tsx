@@ -140,6 +140,10 @@ const Input = forwardRef<InputRef, InputProps>((props, ref) => {
   const prefixCls = getPrefixCls('input', customizePrefixCls);
   const inputRef = useRef<InputRef>(null);
 
+  console.log(
+    '----------------------------------------@knovator/antd ---------------------------------------------',
+  );
+
   // ===================== Size =====================
   const size = React.useContext(SizeContext);
   const mergedSize = customSize || size;
